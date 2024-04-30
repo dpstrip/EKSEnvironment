@@ -20,7 +20,7 @@ export class PrivateCluster extends Construct {
       defaultCapacity: 1,
       mastersRole: iamRole,
       placeClusterHandlerInVpc: true,
-      version: eks.KubernetesVersion.V1_23,
+      version: eks.KubernetesVersion.V1_28,
       endpointAccess: eks.EndpointAccess.PRIVATE,
       vpcSubnets: [{ 
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED 
