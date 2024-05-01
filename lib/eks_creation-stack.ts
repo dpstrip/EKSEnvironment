@@ -19,7 +19,7 @@ export class EksCreationStack extends cdk.Stack {
     })
     new cdk.CfnOutput(this,'vpcLookup', {value:vpc.vpcArn});
 
-  // //create EKS cluster
-  // new PrivateCluster(this, 'dpsCluster', vpc).cluster;
+  //create EKS cluster
+  new PrivateCluster(this, 'dpsCluster', vpc).cluster;
 };
 }

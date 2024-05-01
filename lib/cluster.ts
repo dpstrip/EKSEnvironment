@@ -17,8 +17,9 @@ export class PrivateCluster extends Construct {
 
     this.cluster = new eks.Cluster(this, 'Cluster', {
       vpc,
-      defaultCapacity: 1,
-      mastersRole: iamRole,
+      clusterName: 'dpsEKSCluster',
+      defaultCapacity: 1,  
+      defaultCapacityInstance: ec2.InstanceType.of(ec2.InstanceClass.M5,ec2.InstanceSize.MICRO),
       placeClusterHandlerInVpc: true,
       version: eks.KubernetesVersion.V1_28,
       endpointAccess: eks.EndpointAccess.PRIVATE,
@@ -29,11 +30,19 @@ export class PrivateCluster extends Construct {
           // use vpc endpoint, not the global
           "AWS_STS_REGIONAL_ENDPOINTS": 'regional'
       },
-      kubectlLayer: new KubectlV28Layer(this, 'kubectl')
+      kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
+      mastersRole: iamRole
     });
+    //my issue is how to assign the master role to my AWS role
+    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleArn(this, 'masterrole', 'arn:us-east-1:iam::929556976395:AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
+   
+    this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
 
-    const policy = iam.ManagedPolicy.fromAwsManagedPolicyName(
-      'AmazonEC2ContainerRegistryReadOnly');
-    this.cluster.defaultNodegroup?.role.addManagedPolicy(policy);
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.0.0.0/8'),ec2.Port.tcp(443), 'runner');
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.179.253.0/24'),ec2.Port.tcp(443), 'runner');
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('198.18.0.0/22'),ec2.Port.tcp(443), 'runner');
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.0.0.0/8'),ec2.Port.tcp(80), 'runner');
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.179.253.0/24'),ec2.Port.tcp(80), 'runner');
+    this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('198.18.0.0/22'),ec2.Port.tcp(80), 'runner');
   }
 }
