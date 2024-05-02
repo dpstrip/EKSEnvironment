@@ -34,7 +34,7 @@ export class PrivateCluster extends Construct {
       mastersRole: iamRole
     });
     //my issue is how to assign the master role to my AWS role
-    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleArn(this, 'masterrole', 'arn:us-east-1:iam::929556976395:AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
+    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleArn(this, 'masterrole', 'arn:us-east-1:iam::929556976395:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
    
     this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
 
