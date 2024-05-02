@@ -19,7 +19,7 @@ export class PrivateCluster extends Construct {
       vpc,
       clusterName: 'dpsEKSCluster',
       defaultCapacity: 1,  
-      defaultCapacityInstance: ec2.InstanceType.of(ec2.InstanceClass.M5,ec2.InstanceSize.MICRO),
+      defaultCapacityInstance: ec2.InstanceType.of(ec2.InstanceClass.M5,ec2.InstanceSize.XLARGE),
       placeClusterHandlerInVpc: true,
       version: eks.KubernetesVersion.V1_28,
       endpointAccess: eks.EndpointAccess.PRIVATE,
