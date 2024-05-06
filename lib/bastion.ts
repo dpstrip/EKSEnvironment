@@ -15,54 +15,79 @@ export class BastionStack extends Construct {
             vpcId: 'vpc-0e7a7fc9ede3b6bbb',
           });
 
-        //define an asset object that contains kubectl
-        const asset = new s3Assets.Asset(this, 'S3Asset', {
-            path: 'assets/kubectl'
-        });
+         /******************************************************/
+  /*** Create the bastion server                    *****/
+  /******************************************************/
+  const securityGroup = new ec2.SecurityGroup(this, 'web-server-sg', {
+    vpc,
+    allowAllOutbound: true,
+    description: 'security group for a web server',
+  });
 
-        const userData = ec2.UserData.forLinux();
-        userData.addS3DownloadCommand({
-            region: 'us-east-1',
-            bucket: asset.bucket,
-            bucketKey: asset.s3ObjectKey,
-            localFile: '/tmp/kubectl'
-        });
-        userData.addCommands(
-            'chmod +x /tmp/kubectl',
-            'sudo cp /tmp/kubectl /usr/local/bin'
-        );
+  securityGroup.addIngressRule(
+    ec2.Peer.ipv4('3.83.200.219/32'),
+    ec2.Port.tcp(22),
+  );
 
-        //Create security groups for bastion server
-        const securityGroup = new ec2.SecurityGroup(this, 'BastionServerSG',{
-            vpc: vpc,
-            allowAllOutbound: true,
-            securityGroupName: 'BastionServerSG'
-        });
+  securityGroup.addIngressRule(
+    ec2.Peer.ipv4('3.83.200.219/32'),
+    ec2.Port.tcp(80),
+  );
+  
+ 
+  
+  securityGroup.addIngressRule(
+    ec2.Peer.ipv4('3.83.200.219/32'),
+    ec2.Port.tcp(443),
+  ); //trying to get access into server
+     [
+        ec2.InterfaceVpcEndpointAwsService.AUTOSCALING,
+        ec2.InterfaceVpcEndpointAwsService.CLOUDFORMATION,
+        ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,      
+        ec2.InterfaceVpcEndpointAwsService.ECR,
+        ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
+        ec2.InterfaceVpcEndpointAwsService.ELASTIC_LOAD_BALANCING,
+        ec2.InterfaceVpcEndpointAwsService.KMS,
+        ec2.InterfaceVpcEndpointAwsService.LAMBDA,
+        ec2.InterfaceVpcEndpointAwsService.STEP_FUNCTIONS,
+        ec2.InterfaceVpcEndpointAwsService.STS,
+       
+     ec2.InterfaceVpcEndpointAwsService.EC2,
+     ec2.InterfaceVpcEndpointAwsService.SSM,
+     ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES,
+     ec2.InterfaceVpcEndpointAwsService.EC2_MESSAGES
+     ].forEach(e=> vpc.addInterfaceEndpoint(e.shortName,{service: e, securityGroups:[securityGroup]}));
+     
+  
+  
+  
+    const asset = new s3Assets.Asset(this, 'S3Asset', {
+    path: 'assets/kubectl'
+  });
 
-        securityGroup.addIngressRule(
-            ec2.Peer.ipv4('3.83.200.219/32'),
-            ec2.Port.tcp(22),
-          );
-          securityGroup.addIngressRule(
-            ec2.Peer.ipv4('3.83.200.219/32'),
-            ec2.Port.tcp(80),
-          );
-          securityGroup.addIngressRule(
-            ec2.Peer.ipv4('3.83.200.219/32'),
-            ec2.Port.tcp(443),
-          );
+  const userData = ec2.UserData.forLinux();
+  userData.addS3DownloadCommand({
+    bucket: asset.bucket,
+    bucketKey: asset.s3ObjectKey,
+    localFile: '/tmp/kubectl'
+  });
+  userData.addCommands(
+    'chmod +x /tmp/kubectl',
+    'cp /tmp/kubectl /usr/local/bin'
+  );
 
-        this.host = new ec2.BastionHostLinux(this, 'BastionHostGroupRuleName', {
-            vpc: vpc,
-            instanceName: "BastionServer",
-            requireImdsv2: true,
-            securityGroup,
-            machineImage: ec2.MachineImage.latestAmazonLinux2023({userData,})
-        });
+  
+  const host = new ec2.BastionHostLinux(this, 'Bastion', { 
+    vpc,
+    requireImdsv2: true,
+    securityGroup,
+    machineImage: ec2.MachineImage.latestAmazonLinux2023 ({
+      userData,
+      //generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+    })
+  });
 
-        const bastionrole = this.host.role;
-        bastionrole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
-        bastionrole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
-
-    }
+  host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+  host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
+}
 }
