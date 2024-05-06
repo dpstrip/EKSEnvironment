@@ -7,6 +7,7 @@ import { Construct } from 'constructs';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import * as efs from 'aws-cdk-lib/aws-efs';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import * as bastion from './bastion';
 
 export class EksCreationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,5 +18,6 @@ export class EksCreationStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this,'VPC',{value : vpc.vpcArn});
+    new bastion.BastionStack(this, 'Bastion')
 }
 };
