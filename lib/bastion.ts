@@ -40,21 +40,17 @@ export class BastionStack extends Construct {
         });
 
         securityGroup.addIngressRule(
-            ec2.Peer.ipv4('199,169.204.178/32'),
-            ec2.Port.tcp(22)
-        );
-        securityGroup.addIngressRule(
-            ec2.Peer.ipv4('199,169.204.178/32'),
-            ec2.Port.tcp(80)
-        );
-        securityGroup.addIngressRule(
-            ec2.Peer.ipv4('10.0.0.0/8'),
-            ec2.Port.tcp(443)
-        );
-        securityGroup.addIngressRule(
-            ec2.Peer.ipv4(vpc.vpcCidrBlock),
-            ec2.Port.allTraffic()
-        );
+            ec2.Peer.ipv4('3.83.200.219/32'),
+            ec2.Port.tcp(22),
+          );
+          securityGroup.addIngressRule(
+            ec2.Peer.ipv4('3.83.200.219/32'),
+            ec2.Port.tcp(80),
+          );
+          securityGroup.addIngressRule(
+            ec2.Peer.ipv4('3.83.200.219/32'),
+            ec2.Port.tcp(443),
+          );
 
         this.host = new ec2.BastionHostLinux(this, 'BastionHostGroupRuleName', {
             vpc: vpc,

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { EksCreationStack } from '../lib/eks_creation-stack-old';
+import { EksCreationStack } from '../lib/eks_creation-stack';
 
 const app = new cdk.App();
 new EksCreationStack(app, 'EksCreationStack', {
