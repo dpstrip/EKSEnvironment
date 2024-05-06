@@ -33,13 +33,17 @@ export class BastionStack extends Construct {
     ec2.Peer.ipv4('3.83.200.219/32'),
     ec2.Port.tcp(80),
   );
-  
- 
-  
   securityGroup.addIngressRule(
     ec2.Peer.ipv4('3.83.200.219/32'),
     ec2.Port.tcp(443),
-  ); //trying to get access into server
+  );
+  securityGroup.addIngressRule(
+    ec2.Peer.ipv4('10.0.0.0/8'),
+    ec2.Port.tcp(443),
+  );
+  
+  
+  //trying to get access into server
      [
         ec2.InterfaceVpcEndpointAwsService.AUTOSCALING,
         ec2.InterfaceVpcEndpointAwsService.CLOUDFORMATION,
@@ -62,19 +66,22 @@ export class BastionStack extends Construct {
   
   
     const asset = new s3Assets.Asset(this, 'S3Asset', {
+    //path: './assets/kubectl'
     path: 'assets/kubectl'
   });
 
   const userData = ec2.UserData.forLinux();
   userData.addS3DownloadCommand({
+    region: 'us-east-1',
     bucket: asset.bucket,
     bucketKey: asset.s3ObjectKey,
-    localFile: '/tmp/kubectl'
+    //localFile: '/tmp/kubectl''
   });
-  userData.addCommands(
-    'chmod +x /tmp/kubectl',
-    'cp /tmp/kubectl /usr/local/bin'
-  );
+//   userData.addCommands(
+//     // 'chmod +x /tmp/kubectl',
+//     // 'cp /tmp/kubectl /usr/local/bin'
+//     'cp /tmp/bastion.ts /usr/local/bin'
+//   );
 
   
   const host = new ec2.BastionHostLinux(this, 'Bastion', { 
@@ -82,7 +89,7 @@ export class BastionStack extends Construct {
     requireImdsv2: true,
     securityGroup,
     machineImage: ec2.MachineImage.latestAmazonLinux2023 ({
-      userData,
+      userData: userData,
       //generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
     })
   });
