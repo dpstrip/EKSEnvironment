@@ -8,16 +8,18 @@ import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import * as efs from 'aws-cdk-lib/aws-efs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as bastion from './bastion';
+import * as privateCluster from './cluster';
 
 export class EksCreationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-      vpcId: 'vpc-0e7a7fc9ede3b6bbb',
+      vpcId: 'vpc-0fef7c4b45c4f2ad2b',
     });
 
     new cdk.CfnOutput(this,'VPC',{value : vpc.vpcArn});
-    new bastion.BastionStack(this, 'Bastion')
+    new bastion.BastionStack(this, 'Bastion');
+    new privateCluster.PrivateCluster(this, "MyCluster", vpc);
 }
 };
