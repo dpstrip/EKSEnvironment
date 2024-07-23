@@ -11,7 +11,7 @@ export class BastionServerStack extends cdk.Stack{
 
         // vpc
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-            vpcId: 'vpc-0fef7c4b45c4f2ad2',
+            vpcId: 'vpc-091ee4d9c1e558f2e',
           });
 
 

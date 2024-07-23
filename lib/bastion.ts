@@ -12,7 +12,7 @@ export class BastionStack extends Construct {
 
         //get vpc
         const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-            vpcId: 'vpc-0e7a7fc9ede3b6bbb',
+            vpcId: 'vpc-091ee4d9c1e558f2e',
           });
 
          /******************************************************/
@@ -66,31 +66,28 @@ export class BastionStack extends Construct {
   
   
     const asset = new s3Assets.Asset(this, 'S3Asset', {
-    //path: './assets/kubectl'
     path: 'assets/kubectl'
   });
 
   const userData = ec2.UserData.forLinux();
   userData.addS3DownloadCommand({
-    region: 'us-east-1',
     bucket: asset.bucket,
     bucketKey: asset.s3ObjectKey,
-    //localFile: '/tmp/kubectl''
+    localFile: '/tmp/kubectl'
   });
-//   userData.addCommands(
-//     // 'chmod +x /tmp/kubectl',
-//     // 'cp /tmp/kubectl /usr/local/bin'
-//     'cp /tmp/bastion.ts /usr/local/bin'
-//   );
+  userData.addCommands(
+    'chmod +x /tmp/kubectl',
+    'cp /tmp/kubectl /usr/local/bin'
+  );
 
   
   const host = new ec2.BastionHostLinux(this, 'Bastion', { 
     vpc,
     requireImdsv2: true,
     securityGroup,
-    machineImage: ec2.MachineImage.latestAmazonLinux2023 ({
-      userData: userData,
-      //generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+    machineImage: ec2.MachineImage.latestAmazonLinux ({
+    userData,
+    generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
     })
   });
 

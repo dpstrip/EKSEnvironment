@@ -15,7 +15,7 @@ export class EksCreationStack extends cdk.Stack {
     super(scope, id, props);
 
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-      vpcId: 'vpc-0fef7c4b45c4f2ad2b',
+      vpcId: 'vpc-091ee4d9c1e558f2e',
     });
 
     new cdk.CfnOutput(this,'VPC',{value : vpc.vpcArn});
