@@ -5,13 +5,14 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import { BastionStack } from './bastion';
 
+
 export class PrivateCluster extends Construct {
   readonly cluster : eks.Cluster;
   
   constructor(scope: Construct, id: string, vpc: ec2.IVpc, myBaston: BastionStack) {
     super(scope, id);
 
-    const iamRole = new iam.Role(this, `${id}-iam-eksCluster`,{
+      const iamRole = new iam.Role(this, `${id}-iam-eksCluster`,{
       roleName: `${id}-iam-eksCluster`,
       assumedBy: new iam.AccountRootPrincipal(),
     });
@@ -32,10 +33,11 @@ export class PrivateCluster extends Construct {
           "AWS_STS_REGIONAL_ENDPOINTS": 'regional'
       },
       kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
-      mastersRole: iamRole
+
+      mastersRole: iam.Role.fromRoleName(this, 'Master','arn:aws:sts::929556976395:assumed-role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe/david.stripeik@stls.frb.org' )
     });
     //my issue is how to assign the master role to my AWS role
-    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleArn(this, 'masterrole', 'arn:us-east-1:iam::9295569763955:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
+    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleName(this, 'masterrole', 'arn:us-east-1:iam::9295569763955:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
     this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleName(this, 'mastersroleblankstack', myBaston.host.role.roleName))
     this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
 
@@ -46,5 +48,21 @@ export class PrivateCluster extends Construct {
     this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.179.253.0/24'),ec2.Port.tcp(80), 'runner');
     this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('198.18.0.0/22'),ec2.Port.tcp(80), 'runner');
     this.cluster.clusterSecurityGroup.addIngressRule(ec2.Peer.ipv4('198.18.0.0/22'),ec2.Port.tcp(80), 'runner');
+
+    //addons
+    const kubeProxy = new eks.CfnAddon(this, 'addonKubeProxy',{
+      addonName: "kube-proxy",
+      clusterName: this.cluster.clusterName,
+    });
+    const coreDNS = new eks.CfnAddon(this, 'addoncoreDNS',{
+      addonName: "coredns",
+      clusterName: this.cluster.clusterName,
+    });
+    const vpcCni = new eks.CfnAddon(this, 'addonVpcCni',{
+      addonName: "vpc-cni",
+      clusterName: this.cluster.clusterName,
+    });
+    this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
+    //
   }
 }

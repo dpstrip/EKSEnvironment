@@ -85,9 +85,9 @@ export class BastionStack extends Construct {
     vpc,
     requireImdsv2: true,
     securityGroup,
-    machineImage: ec2.MachineImage.latestAmazonLinux ({
+    machineImage: ec2.MachineImage.latestAmazonLinux2023 ({
     userData,
-    generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+    //generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
     })
   });
 
