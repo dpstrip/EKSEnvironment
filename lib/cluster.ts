@@ -33,11 +33,14 @@ export class PrivateCluster extends Construct {
           "AWS_STS_REGIONAL_ENDPOINTS": 'regional'
       },
       kubectlLayer: new KubectlV28Layer(this, 'kubectl'),
-
+// to get the arn value go to command line and type 'aws sts get-caller-identity'
       mastersRole: iam.Role.fromRoleName(this, 'Master','arn:aws:sts::929556976395:assumed-role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe/david.stripeik@stls.frb.org' )
     });
     //my issue is how to assign the master role to my AWS role
-    this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleName(this, 'masterrole', 'arn:us-east-1:iam::9295569763955:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe'));
+    const role1 = iam.Role.fromRoleName(this, 'admin-role', 'arn:us-east-1:iam::9295569763955:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe');
+    const role2 =  iam.Role.fromRoleName(this, 'mastersroleblankstack2', myBaston.host.role.roleName); 
+    this.cluster.awsAuth.addRoleMapping(role1, {groups:['system:masters']});
+    this.cluster.awsAuth.addRoleMapping(role2, {groups:['system:masters']});
     this.cluster.awsAuth.addMastersRole(iam.Role.fromRoleName(this, 'mastersroleblankstack', myBaston.host.role.roleName))
     this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
 
@@ -63,6 +66,7 @@ export class PrivateCluster extends Construct {
       clusterName: this.cluster.clusterName,
     });
     this.cluster.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
-    //
+    const policy = iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly');
+    this.cluster.defaultNodegroup?.role.addManagedPolicy(policy);
   }
 }
