@@ -14,12 +14,13 @@ export class EksCreationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const myVPCid = 'vpc-08da75e149a4d7c74'
     const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-      vpcId: 'vpc-091ee4d9c1e558f2e',
+      vpcId: myVPCid,
     });
 
     new cdk.CfnOutput(this,'VPC',{value : vpc.vpcArn});
-    new bastion.BastionStack(this, 'Bastion');
-    new privateCluster.PrivateCluster(this, "MyCluster", vpc);
+    const myBastion =  new bastion.BastionStack(this, 'Bastion','vpc-08da75e149a4d7c74', props, );
+    new privateCluster.PrivateCluster(this, "MyCluster", vpc, myBastion);
 }
 };

@@ -7,12 +7,12 @@ import {Construct} from 'constructs';
 export class BastionStack extends Construct {
     readonly host: ec2.BastionHostLinux;
 
-    constructor(scope: Construct, id: string, props?: StackProps){
+    constructor(scope: Construct, id: string,myVPCid: string, props?: StackProps){
         super(scope, id);
 
         //get vpc
         const vpc = ec2.Vpc.fromLookup(this, 'vpc', {
-            vpcId: 'vpc-091ee4d9c1e558f2e',
+            vpcId: myVPCid,
           });
 
          /******************************************************/
@@ -81,7 +81,7 @@ export class BastionStack extends Construct {
   );
 
   
-  const host = new ec2.BastionHostLinux(this, 'Bastion', { 
+   this.host = new ec2.BastionHostLinux(this, 'Bastion', { 
     vpc,
     requireImdsv2: true,
     securityGroup,
@@ -91,7 +91,7 @@ export class BastionStack extends Construct {
     })
   });
 
-  host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
-  host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
+  this.host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+  this.host.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));
 }
 }
