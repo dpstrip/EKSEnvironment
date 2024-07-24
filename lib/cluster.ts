@@ -4,6 +4,7 @@ import * as eks from 'aws-cdk-lib/aws-eks';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { KubectlV28Layer } from '@aws-cdk/lambda-layer-kubectl-v28';
 import { BastionStack } from './bastion';
+import { Cluster } from 'aws-cdk-lib/aws-ecs';
 
 
 export class PrivateCluster extends Construct {
@@ -36,6 +37,24 @@ export class PrivateCluster extends Construct {
 // to get the arn value go to command line and type 'aws sts get-caller-identity'
       mastersRole: iam.Role.fromRoleName(this, 'Master','arn:aws:sts::929556976395:assumed-role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe/david.stripeik@stls.frb.org' )
     });
+
+    const clusterRole = new iam.Role(this, 'EksClusterRole',{
+      assumedBy: new iam.ServicePrincipal('eks.amazonaws.com')
+    });
+
+    clusterRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSClusterPolicy'));
+    clusterRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSServicePolicy'));
+    this.cluster.awsAuth.addMastersRole(clusterRole);
+
+    const bastionRole = new iam.Role(this, 'BastionRole',{
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
+    });
+
+    bastionRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSClusterPolicy'));
+    bastionRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSServicePolicy'));
+    this.cluster.awsAuth.addMastersRole(bastionRole);
+
+
     //my issue is how to assign the master role to my AWS role
     const role1 = iam.Role.fromRoleName(this, 'admin-role', 'arn:us-east-1:iam::9295569763955:role/AWSReservedSSO_AWSAdministratorAccess_d4aeae66894d98fe');
     const role2 =  iam.Role.fromRoleName(this, 'mastersroleblankstack2', myBaston.host.role.roleName); 
